@@ -13,8 +13,10 @@ import os
 import sys
 import threading
 import traceback
+import json
 
 import botocore
+import _jsonnet as jsonnet
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
 from jinja2 import StrictUndefined
@@ -125,11 +127,20 @@ class Template(object):
                     )
                 elif file_extension == ".py":
                     self._body = self._call_sceptre_handler()
-
+                elif file_extension == ".jsonnet":
+                    ext_vars = {
+                        'sceptre_user_data': json.dumps(self.sceptre_user_data)
+                    }
+                    self._body = jsonnet.evaluate_file(
+                        self.path,
+                        # import_callback=import_callback,
+                        # native_callbacks=native_callbacks,
+                        ext_vars=ext_vars,
+                    )
                 else:
                     raise UnsupportedTemplateFileTypeError(
                         "Template has file extension %s. Only .py, .yaml, "
-                        ".template, .json and .j2 are supported.",
+                        ".template, .jsonnet, .json, and .j2 are supported.",
                         os.path.splitext(self.path)[1]
                     )
             except Exception as e:
