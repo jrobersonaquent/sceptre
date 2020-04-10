@@ -293,6 +293,33 @@ class TestTemplate(object):
         with pytest.raises(TypeError):
             self.template.body
 
+    def test_body_with_jsonnet_template(self):
+        self.template.name = "vpc"
+        self.template.path = os.path.join(
+            os.getcwd(),
+            "tests/fixtures/templates/vpc.jsonnet"
+        )
+        output = self.template.body
+        output_dict = json.loads(output)
+        with open("tests/fixtures/templates/compiled_vpc.json", "r") as f:
+            expected_output_dict = json.loads(f.read())
+        assert output_dict == expected_output_dict
+
+    def test_body_with_jsonnet_template_injects_sceptre_user_data(self):
+        self.template.sceptre_user_data = {
+            "cidr_block": "10.0.0.0/16"
+        }
+        self.template.name = "vpc_sud"
+        self.template.path = os.path.join(
+            os.getcwd(),
+            "tests/fixtures/templates/vpc_sud.jsonnet"
+        )
+        output = self.template.body
+        output_dict = json.loads(output)
+        with open("tests/fixtures/templates/compiled_vpc_sud.json", "r") as f:
+            expected_output_dict = json.loads(f.read())
+        assert output_dict == expected_output_dict
+
     def test_body_with_incorrect_filetype(self):
         self.template.path = (
             "path/to/something.ext"
